@@ -72,9 +72,14 @@ df = all_data[all_data["Year"] == selected_year].copy()
 if "selected_iso3" not in st.session_state:
     st.session_state.selected_iso3 = None
 
-# Clear country selection if it's not in the filtered region
-if st.session_state.selected_iso3 and st.session_state.selected_iso3 not in df["iso3"].values:
-    st.session_state.selected_iso3 = None
+# Clear country selection if it's not in the current year or region filter
+if st.session_state.selected_iso3:
+    iso = st.session_state.selected_iso3
+    country_row = df[df["iso3"] == iso]
+    if country_row.empty:
+        st.session_state.selected_iso3 = None
+    elif selected_region != "All regions" and country_row.iloc[0]["region"] != selected_region:
+        st.session_state.selected_iso3 = None
 
 
 def make_scatter(selected_iso3, selected_region):
@@ -141,13 +146,22 @@ def make_scatter(selected_iso3, selected_region):
     return fig
 
 
-def make_choropleth(column, title, colorscale, selected_iso3):
+def make_choropleth(column, title, colorscale, selected_iso3, selected_region):
     fig = go.Figure()
 
-    if selected_iso3:
-        df_rest = df[df["iso3"] != selected_iso3]
-        df_sel = df[df["iso3"] == selected_iso3]
+    df_region = df if selected_region == "All regions" else df[df["region"] == selected_region]
 
+    if selected_iso3:
+        df_rest = df_region[df_region["iso3"] != selected_iso3]
+        df_sel = df_region[df_region["iso3"] == selected_iso3]
+    elif selected_region != "All regions":
+        df_rest = df[df["region"] != selected_region]
+        df_sel = df_region
+    else:
+        df_rest = pd.DataFrame()
+        df_sel = df
+
+    if selected_iso3 or selected_region != "All regions":
         # Grey trace for all unselected countries
         fig.add_trace(go.Choropleth(
             locations=df_rest["iso3"],
@@ -171,8 +185,8 @@ def make_choropleth(column, title, colorscale, selected_iso3):
             colorbar=dict(title=title),
             hovertemplate="<b>%{customdata[0]}</b><br>" + title + ": %{z:,.1f}<extra></extra>",
             customdata=df_sel[["iso3"]].values,
-            marker_line_color="black",
-            marker_line_width=1.5,
+            marker_line_color="black" if selected_iso3 else "white",
+            marker_line_width=1.5 if selected_iso3 else 0.5,
         ))
     else:
         fig.add_trace(go.Choropleth(
@@ -257,7 +271,7 @@ col1, col2 = st.columns(2)
 
 with col1:
     st.subheader("Average Years of Schooling")
-    map1_fig = make_choropleth("schooling_years", "Yrs of Schooling", "YlGnBu", st.session_state.selected_iso3)
+    map1_fig = make_choropleth("schooling_years", "Yrs of Schooling", "YlGnBu", st.session_state.selected_iso3, selected_region)
     map1_event = st.plotly_chart(map1_fig, on_select="rerun", key="map_schooling", width="stretch")
 
     if map1_event and map1_event.selection and map1_event.selection.points:
@@ -271,7 +285,7 @@ with col1:
 
 with col2:
     st.subheader("GDP per Capita (USD)")
-    map2_fig = make_choropleth("gdp_per_capita", "GDP/capita", "YlOrRd", st.session_state.selected_iso3)
+    map2_fig = make_choropleth("gdp_per_capita", "GDP/capita", "YlOrRd", st.session_state.selected_iso3, selected_region)
     map2_event = st.plotly_chart(map2_fig, on_select="rerun", key="map_gdp", width="stretch")
 
     if map2_event and map2_event.selection and map2_event.selection.points:
