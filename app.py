@@ -164,6 +164,11 @@ st.caption(
     "Click any country on a chart to highlight it across all three views. "
     "Click again to deselect."
 )
+st.caption(
+    "Data sources: "
+    "[Average years of schooling](https://ourworldindata.org/grapher/mean-years-of-schooling-long-run) · "
+    "[GDP per capita](https://ourworldindata.org/grapher/gdp-per-capita-worldbank) — Our World in Data"
+)
 
 if st.session_state.selected_iso3:
     country_name = df[df["iso3"] == st.session_state.selected_iso3]["country"].values
