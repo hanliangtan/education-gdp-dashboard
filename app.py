@@ -53,6 +53,18 @@ REGION_COLORS["Oceania"] = "rgb(255, 140, 0)"
 
 # ── Sidebar ───────────────────────────────────────────────────────────────────
 st.sidebar.title("Filters")
+st.sidebar.markdown(
+    """<style>
+    [data-testid="stSidebar"] [data-testid="stWidgetLabel"] p { font-size: 1.4rem !important; }
+    [data-testid="stSidebar"] label { font-size: 1.4rem !important; }
+    [data-testid="stSidebar"] [data-testid="stSliderTickBarMin"],
+    [data-testid="stSidebar"] [data-testid="stSliderTickBarMax"],
+    [data-testid="stSidebar"] [data-testid="stSlider"] [data-testid="stMarkdownContainer"] p { font-size: 1.2rem !important; }
+    [data-testid="stSidebar"] .stSelectbox div[data-baseweb="select"] span { font-size: 1.2rem !important; }
+    [data-testid="stSidebar"] [data-testid="stSlider"] [aria-valuetext] { font-size: 1.2rem !important; }
+    </style>""",
+    unsafe_allow_html=True,
+)
 selected_year = st.sidebar.select_slider(
     "Year",
     options=AVAILABLE_YEARS,
