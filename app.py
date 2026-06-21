@@ -30,6 +30,14 @@ def load_all_data():
 
 all_data = load_all_data()
 
+REGION_COLORS = {
+    region: color
+    for region, color in zip(
+        sorted(all_data["region"].unique()),
+        px.colors.qualitative.Safe,
+    )
+}
+
 # ── Sidebar ───────────────────────────────────────────────────────────────────
 st.sidebar.title("Filters")
 selected_year = st.sidebar.selectbox(
@@ -71,17 +79,12 @@ def make_scatter(selected_iso3):
             showlegend=False,
         ))
 
-    color_map = {r: c for r, c in zip(
-        df["region"].unique(),
-        px.colors.qualitative.Safe,
-    )}
-
     for region, group in (df_sel if not selected_iso3 else df_sel.assign(region=df_sel["region"])).groupby("region") if not selected_iso3 else [(df_sel.iloc[0]["region"], df_sel)]:
         fig.add_trace(go.Scatter(
             x=group["schooling_years"],
             y=group["gdp_per_capita"],
             mode="markers",
-            marker=dict(color=color_map.get(region, "steelblue"), size=10 if selected_iso3 else 8, line=dict(width=1.5 if selected_iso3 else 0, color="black")),
+            marker=dict(color=REGION_COLORS.get(region, "steelblue"), size=10 if selected_iso3 else 8, line=dict(width=1.5 if selected_iso3 else 0, color="black")),
             name=region,
             text=group["country"],
             customdata=group["iso3"],
@@ -165,11 +168,26 @@ st.caption(
 if st.session_state.selected_iso3:
     country_name = df[df["iso3"] == st.session_state.selected_iso3]["country"].values
     label = country_name[0] if len(country_name) else st.session_state.selected_iso3
+    st.markdown(
+        """<style>div[data-testid="stButton"] button {font-size: 1.1rem; padding: 0.4rem 1rem;}</style>""",
+        unsafe_allow_html=True,
+    )
     col_clear, _ = st.columns([1, 5])
     with col_clear:
         if st.button(f"Clear selection: {label}"):
             st.session_state.selected_iso3 = None
             st.rerun()
+
+# ── Country detail card ───────────────────────────────────────────────────────
+if st.session_state.selected_iso3:
+    row = df[df["iso3"] == st.session_state.selected_iso3]
+    if not row.empty:
+        r = row.iloc[0]
+        st.subheader(f"{r['country']} — Detail")
+        m1, m2, m3 = st.columns(3)
+        m1.metric("Region", r["region"])
+        m2.metric("Avg Years of Schooling", f"{r['schooling_years']:.1f} yrs")
+        m3.metric("GDP per Capita", f"${r['gdp_per_capita']:,.0f}")
 
 st.divider()
 
@@ -220,15 +238,3 @@ with col2:
                 st.session_state.selected_iso3 = new_sel
                 st.rerun()
 
-st.divider()
-
-# ── Country detail card ───────────────────────────────────────────────────────
-if st.session_state.selected_iso3:
-    row = df[df["iso3"] == st.session_state.selected_iso3]
-    if not row.empty:
-        r = row.iloc[0]
-        st.subheader(f"{r['country']} — Detail")
-        m1, m2, m3 = st.columns(3)
-        m1.metric("Region", r["region"])
-        m2.metric("Avg Years of Schooling", f"{r['schooling_years']:.1f} yrs")
-        m3.metric("GDP per Capita", f"${r['gdp_per_capita']:,.0f}")
