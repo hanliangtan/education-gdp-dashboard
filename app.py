@@ -118,10 +118,8 @@ def make_scatter(selected_iso3):
         xaxis=dict(title="Average Years of Schooling", title_font=dict(size=32), tickfont=dict(size=24), fixedrange=True),
         yaxis=dict(
             title="GDP per Capita (USD)", title_font=dict(size=24),
-            type="log", range=[2, 6], fixedrange=True,
-            tickmode="array",
-            tickvals=[100, 1000, 10000, 100000],
-            ticktext=["$100", "$1,000", "$10,000", "$100,000"],
+            fixedrange=True,
+            tickformat="$,.0f",
             tickfont=dict(size=20),
         ),
         margin=dict(l=70, r=0, t=10, b=0),
