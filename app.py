@@ -53,10 +53,10 @@ REGION_COLORS["Oceania"] = "rgb(255, 140, 0)"
 
 # ── Sidebar ───────────────────────────────────────────────────────────────────
 st.sidebar.title("Filters")
-selected_year = st.sidebar.selectbox(
+selected_year = st.sidebar.select_slider(
     "Year",
-    options=AVAILABLE_YEARS[::-1],
-    index=0,
+    options=AVAILABLE_YEARS,
+    value=2020,
 )
 
 df = all_data[all_data["Year"] == selected_year].copy()
@@ -119,12 +119,15 @@ def make_scatter(selected_iso3):
         yaxis=dict(
             title="GDP per Capita (USD)", title_font=dict(size=24),
             fixedrange=True,
+            rangemode="tozero",
             tickformat="$,.0f",
             tickfont=dict(size=20),
         ),
         margin=dict(l=70, r=0, t=10, b=0),
         height=420,
         legend=dict(title=dict(text="Region", font=dict(size=24)), font=dict(size=18), orientation="v"),
+        legend_itemclick="toggleothers",
+        legend_itemdoubleclick="toggle",
         clickmode="event+select",
     )
     return fig
