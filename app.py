@@ -5,6 +5,16 @@ import plotly.graph_objects as go
 
 st.set_page_config(page_title="Education vs GDP", layout="wide")
 
+st.markdown(
+    """<style>
+    #MainMenu {visibility: hidden;}
+    header [data-testid="stToolbar"] {visibility: hidden;}
+    .viewerBadge_container__r5tak {display: none;}
+    [data-testid="stDecoration"] {display: none;}
+    </style>""",
+    unsafe_allow_html=True,
+)
+
 DATA_DIR = "."
 AVAILABLE_YEARS = [1990, 1995, 2000, 2005, 2010, 2015, 2020]
 
