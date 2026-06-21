@@ -59,23 +59,32 @@ selected_year = st.sidebar.select_slider(
     value=2020,
 )
 
+all_regions = sorted(all_data["region"].unique())
+selected_region = st.sidebar.selectbox(
+    "Region",
+    options=["All regions"] + all_regions,
+    index=0,
+)
+
 df = all_data[all_data["Year"] == selected_year].copy()
 
 # ── Session state for selection ───────────────────────────────────────────────
 if "selected_iso3" not in st.session_state:
     st.session_state.selected_iso3 = None
 
-# Clear selection if selected country has no data in the new year
+# Clear country selection if it's not in the filtered region
 if st.session_state.selected_iso3 and st.session_state.selected_iso3 not in df["iso3"].values:
     st.session_state.selected_iso3 = None
 
 
-def make_scatter(selected_iso3):
+def make_scatter(selected_iso3, selected_region):
+    df_view = df if selected_region == "All regions" else df[df["region"] == selected_region]
+
     if selected_iso3:
-        df_sel = df[df["iso3"] == selected_iso3]
-        df_rest = df[df["iso3"] != selected_iso3]
+        df_sel = df_view[df_view["iso3"] == selected_iso3]
+        df_rest = df_view[df_view["iso3"] != selected_iso3]
     else:
-        df_sel = df
+        df_sel = df_view
         df_rest = pd.DataFrame()
 
     fig = go.Figure()
@@ -115,7 +124,7 @@ def make_scatter(selected_iso3):
         ))
 
     fig.update_layout(
-        xaxis=dict(title="Average Years of Schooling", title_font=dict(size=32), tickfont=dict(size=24), fixedrange=True),
+        xaxis=dict(title="Average Years of Schooling", title_font=dict(size=32), tickfont=dict(size=24), fixedrange=True, range=[0, 14]),
         yaxis=dict(
             title="GDP per Capita (USD)", title_font=dict(size=24),
             fixedrange=True,
@@ -126,8 +135,6 @@ def make_scatter(selected_iso3):
         margin=dict(l=70, r=0, t=10, b=0),
         height=420,
         legend=dict(title=dict(text="Region", font=dict(size=24)), font=dict(size=18), orientation="v"),
-        legend_itemclick="toggleothers",
-        legend_itemdoubleclick="toggle",
         clickmode="event+select",
     )
     return fig
@@ -229,7 +236,7 @@ st.divider()
 
 # ── Scatter plot ──────────────────────────────────────────────────────────────
 st.subheader("Schooling vs GDP per Capita")
-scatter_fig = make_scatter(st.session_state.selected_iso3)
+scatter_fig = make_scatter(st.session_state.selected_iso3, selected_region)
 scatter_event = st.plotly_chart(scatter_fig, on_select="rerun", key="scatter", width="stretch")
 
 if scatter_event and scatter_event.selection and scatter_event.selection.points:
