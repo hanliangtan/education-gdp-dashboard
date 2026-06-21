@@ -187,9 +187,9 @@ def make_choropleth(column, title, colorscale, selected_iso3):
 
 
 # ── Header ────────────────────────────────────────────────────────────────────
-st.title(f"Education vs GDP ({selected_year})")
+st.title(f"Education and GDP across the world ({selected_year})")
 st.markdown(
-    "<p style='font-size: 1.4rem;'>Does education level correspond to higher GDP? "
+    "<p style='font-size: 1.4rem;'>Do countries with higher levels of education tend to have higher GDP per capita?<br>"
     "Click any country on a chart to highlight it across all three views. "
     "Click again to deselect.</p>",
     unsafe_allow_html=True,
