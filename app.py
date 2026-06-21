@@ -135,6 +135,7 @@ def make_scatter(selected_iso3, selected_region):
         margin=dict(l=70, r=0, t=10, b=0),
         height=420,
         legend=dict(title=dict(text="Region", font=dict(size=24)), font=dict(size=18), orientation="v"),
+        hoverlabel=dict(font=dict(size=16)),
         clickmode="event+select",
     )
     return fig
@@ -189,6 +190,7 @@ def make_choropleth(column, title, colorscale, selected_iso3):
         geo=dict(showframe=False, showcoastlines=True, projection_type="natural earth"),
         margin=dict(l=0, r=0, t=10, b=0),
         height=380,
+        hoverlabel=dict(font=dict(size=16)),
         clickmode="event+select",
     )
     return fig
