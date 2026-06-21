@@ -92,10 +92,9 @@ def make_scatter(selected_iso3):
         ))
 
     fig.update_layout(
-        xaxis_title="Average Years of Schooling",
-        yaxis_title="GDP per Capita (USD, log scale)",
-        yaxis_type="log",
-        margin=dict(l=0, r=0, t=10, b=0),
+        xaxis=dict(title="Average Years of Schooling", title_font=dict(size=32), fixedrange=True),
+        yaxis=dict(title="GDP per Capita (USD)", title_font=dict(size=24), type="log", range=[2, 6], fixedrange=True),
+        margin=dict(l=70, r=0, t=10, b=0),
         height=420,
         legend=dict(title="Region", orientation="v"),
         clickmode="event+select",
@@ -159,10 +158,11 @@ def make_choropleth(column, title, colorscale, selected_iso3):
 
 # ── Header ────────────────────────────────────────────────────────────────────
 st.title(f"Education vs GDP ({selected_year})")
-st.caption(
-    "Does education level correspond to higher GDP? "
+st.markdown(
+    "<p style='font-size: 1.4rem;'>Does education level correspond to higher GDP? "
     "Click any country on a chart to highlight it across all three views. "
-    "Click again to deselect."
+    "Click again to deselect.</p>",
+    unsafe_allow_html=True,
 )
 st.caption(
     "Data sources: "
