@@ -93,10 +93,16 @@ def make_scatter(selected_iso3):
 
     fig.update_layout(
         xaxis=dict(title="Average Years of Schooling", title_font=dict(size=32), fixedrange=True),
-        yaxis=dict(title="GDP per Capita (USD)", title_font=dict(size=24), type="log", range=[2, 6], fixedrange=True),
+        yaxis=dict(
+            title="GDP per Capita (USD)", title_font=dict(size=24),
+            type="log", range=[2, 6], fixedrange=True,
+            tickmode="array",
+            tickvals=[100, 1000, 10000, 100000],
+            ticktext=["$100", "$1,000", "$10,000", "$100,000"],
+        ),
         margin=dict(l=70, r=0, t=10, b=0),
         height=420,
-        legend=dict(title="Region", orientation="v"),
+        legend=dict(title=dict(text="Region", font=dict(size=24)), font=dict(size=18), orientation="v"),
         clickmode="event+select",
     )
     return fig
