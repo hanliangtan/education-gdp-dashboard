@@ -23,11 +23,13 @@ AVAILABLE_YEARS = [1990, 1995, 2000, 2005, 2010, 2015, 2020]
 def load_all_data():
     schooling = pd.read_csv(f"{DATA_DIR}/mean_years_schooling.csv")
     gdp = pd.read_csv(f"{DATA_DIR}/gdp_per_capita.csv")
+    pop = pd.read_csv(f"{DATA_DIR}/population.csv")
 
     s = schooling[schooling["Year"].isin(AVAILABLE_YEARS)].dropna(subset=["Code"]).copy()
     g = gdp[gdp["Year"].isin(AVAILABLE_YEARS)].dropna(subset=["Code"]).copy()
+    p = pop[pop["Year"].isin(AVAILABLE_YEARS)].dropna(subset=["Code"])[["Code", "Year", "Population"]].copy()
 
-    df = s.merge(g, on=["Code", "Year"], how="inner")
+    df = s.merge(g, on=["Code", "Year"], how="inner").merge(p, on=["Code", "Year"], how="left")
     df = df.rename(columns={
         "Entity_x": "country",
         "Code": "iso3",
@@ -35,7 +37,7 @@ def load_all_data():
         "GDP per capita": "gdp_per_capita",
         "World region according to OWID": "region",
     })
-    return df[["country", "iso3", "Year", "schooling_years", "gdp_per_capita", "region"]].dropna()
+    return df[["country", "iso3", "Year", "schooling_years", "gdp_per_capita", "region", "Population"]].dropna()
 
 
 all_data = load_all_data()
@@ -47,6 +49,7 @@ REGION_COLORS = {
         px.colors.qualitative.Safe,
     )
 }
+REGION_COLORS["Oceania"] = "rgb(255, 140, 0)"
 
 # ── Sidebar ───────────────────────────────────────────────────────────────────
 st.sidebar.title("Filters")
@@ -77,12 +80,17 @@ def make_scatter(selected_iso3):
 
     fig = go.Figure()
 
+    max_pop = df["Population"].max()
+
+    def bubble_sizes(population_series):
+        return (population_series / max_pop).pow(0.5) * 60 + 5
+
     if not df_rest.empty:
         fig.add_trace(go.Scatter(
             x=df_rest["schooling_years"],
             y=df_rest["gdp_per_capita"],
             mode="markers",
-            marker=dict(color="lightgrey", size=8, opacity=0.5),
+            marker=dict(color="lightgrey", size=bubble_sizes(df_rest["Population"]), opacity=0.4),
             text=df_rest["country"],
             customdata=df_rest["iso3"],
             hovertemplate="<b>%{text}</b><br>Schooling: %{x:.1f} yrs<br>GDP/capita: $%{y:,.0f}<extra></extra>",
@@ -94,21 +102,27 @@ def make_scatter(selected_iso3):
             x=group["schooling_years"],
             y=group["gdp_per_capita"],
             mode="markers",
-            marker=dict(color=REGION_COLORS.get(region, "steelblue"), size=10 if selected_iso3 else 8, line=dict(width=1.5 if selected_iso3 else 0, color="black")),
+            marker=dict(
+                color=REGION_COLORS.get(region, "steelblue"),
+                size=bubble_sizes(group["Population"]),
+                line=dict(width=1.5 if selected_iso3 else 0, color="black"),
+            ),
             name=region,
             text=group["country"],
             customdata=group["iso3"],
-            hovertemplate="<b>%{text}</b><br>Schooling: %{x:.1f} yrs<br>GDP/capita: $%{y:,.0f}<extra></extra>",
+            hovertemplate="<b>%{text}</b><br>Schooling: %{x:.1f} yrs<br>GDP/capita: $%{y:,.0f}<br>Population: %{meta:,}<extra></extra>",
+            meta=group["Population"],
         ))
 
     fig.update_layout(
-        xaxis=dict(title="Average Years of Schooling", title_font=dict(size=32), fixedrange=True),
+        xaxis=dict(title="Average Years of Schooling", title_font=dict(size=32), tickfont=dict(size=24), fixedrange=True),
         yaxis=dict(
             title="GDP per Capita (USD)", title_font=dict(size=24),
             type="log", range=[2, 6], fixedrange=True,
             tickmode="array",
             tickvals=[100, 1000, 10000, 100000],
             ticktext=["$100", "$1,000", "$10,000", "$100,000"],
+            tickfont=dict(size=20),
         ),
         margin=dict(l=70, r=0, t=10, b=0),
         height=420,
